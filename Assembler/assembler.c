@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "C:\Users\megas\Clearn\ilab\Oneginv2\fileSize.h"
-#include "C:\Users\megas\Clearn\ilab\Oneginv2\StringNumber.h"
+#include "C:\Users\megas\Clearn\ilab\Onegin\fileSize.h"
+#include "C:\Users\megas\Clearn\ilab\Onegin\StringNumber.h"
 
 void SpacestoZeroes(char *arrPointer, int arrSize);
 
@@ -121,7 +121,7 @@ void SpacestoZeroes(char *arrPointer, int arrSize)
 }
 
 
-//0x - push, х - количество символов, которые нужно прочитать
+//0 - push
 //11 - add
 //12 - sub
 //13 - mult
