@@ -1,0 +1,9 @@
+push 10
+push 7
+add
+push 2
+mult
+push 2
+div
+out
+halt
