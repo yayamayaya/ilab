@@ -8,7 +8,7 @@ void stackCtor(stack *stk, int capacity)
     stk-> data = (int *)calloc(capacity + 6, sizeof(int));      //Проверка на каллок
     if(stk-> data == NULL)
     {
-        printf("Memory allocation error");
+        printf("\n>>>Memory allocation error");
         exit(1);
     }
 
@@ -35,7 +35,7 @@ void stackPush(stack *stk, int num)
     {
         if(realloc(stk-> data, 2 * stk-> capacity * sizeof(int)) == NULL)         //realloc в assert'е
         {
-            printf("Reallocation error");
+            printf("\n>>>Reallocation error");
             exit(1);
         }
 

@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "C:\Users\megas\Clearn\ilab\Oneginv2\fileSize.h"
+#include "C:\Users\megas\Clearn\ilab\Onegin\fileSize.h"
 #include "C:\Users\megas\Clearn\ilab\Stack\stack.h"
-#include "C:\Users\megas\Clearn\ilab\Oneginv2\StringNumber.h"
+#include "C:\Users\megas\Clearn\ilab\Onegin\StringNumber.h"
 
 
 int main()
