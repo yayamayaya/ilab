@@ -3,7 +3,7 @@
 
 int main()
 {
-    FILE * bytecode = fopen("bytecode.txt", "r");       //Открываем файл
+    FILE * bytecode = fopen("../Assembler/bytecode.txt", "r");       //Открываем файл
 
     stack memory = {0};
     stackCtor(&memory, 10);

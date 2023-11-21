@@ -22,7 +22,7 @@ int main()
 
     fileSize(code, &size);
 
-    printf("\nSize of file is: %d\n", size);
+    //printf("\nSize of file is: %d\n", size);
     char *Buff = (char *)calloc(size + 1, sizeof(char));       //Создаем массив, куда запишем весь файл
 
     rewind(code);                                        //Возвращаемся в начало файла
@@ -36,8 +36,8 @@ int main()
 
     stringNumber(Buff, &strs);
 
-    for(int i = 0; i < size; i++)
-        printf(" %d ", Buff[i]);
+    /*for(int i = 0; i < size; i++)
+        printf(" %d ", Buff[i]);*/
 
     char **strCode = (char **)calloc(strs, sizeof(char *));          //Создаём массив указателей на начала строк, размер массива - количество строк в тексте
 

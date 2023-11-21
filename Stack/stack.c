@@ -47,7 +47,7 @@ void stackPush(stack *stk, int num)
     *(stk-> data + stk-> size) = num;
     stk-> size++;
 
-    printf(">> %d was pushed on position %d.\n", *(stk-> data + stk-> size - 1), stk-> size);
+    //printf(">> %d was pushed on position %d.\n", *(stk-> data + stk-> size - 1), stk-> size);
 }
 
 int stackPop(stack *stk, int *num) //Указатель на значение.

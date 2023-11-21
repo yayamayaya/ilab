@@ -6,8 +6,6 @@
 #include "C:\Users\megas\Clearn\ilab\Onegin\fileSize.h"
 #include "C:\Users\megas\Clearn\ilab\Onegin\StringNumber.h"
 
-void SpacestoZeroes(char *arrPointer, int arrSize);
-
 
 int main()
 {
@@ -23,7 +21,7 @@ int main()
 
     fileSize(code, &size);
 
-    printf("\nSize of file is: %d\n", size);
+    //printf("\nSize of file is: %d\n", size);
     char *Buff = (char *)calloc(size + 1, sizeof(char));       //Создаем массив, куда запишем весь файл
 
     rewind(code);                                        //Возвращаемся в начало файла
@@ -37,9 +35,6 @@ int main()
 
     stringNumber(Buff, &strs);
 
-    for(int i = 0; i < size; i++)
-        printf(" %d ", Buff[i]);
-
     char **strCode = (char **)calloc(strs, sizeof(char *));          //Создаём массив указателей на начала строк, размер массива - количество строк в тексте
 
     strCode[0] = &Buff[0];
@@ -50,74 +45,41 @@ int main()
             strCode[i] += 1;
     }
 
-    SpacestoZeroes(Buff, size);
+    FILE * bytecode = fopen("bytecode.txt", "w");
 
-    for(int pos = 0, temp1 = 0, temp2 = 0; pos < strs; pos++)
+    for(int pos = 0; pos < strs; pos++)
     {     
-        if (strcmp(strCode[pos], "push\0") == 0)
+        if (strncmp(strCode[pos], "push ", 5) == 0)
         {
-            temp1 = 0;
-            sscanf(strCode[pos] + 5, "%d", &temp1);
-            stackPush(&Stk, temp1);
+            fprintf(bytecode, "%d ", 0);
+            int temp = 0;
+            sscanf(strCode[pos] + 5, "%d", &temp);
+            fprintf(bytecode, "%d ", temp);
         }
+        else if (strcmp(strCode[pos], "plus\0") == 0)
+            fprintf(bytecode, "%d ", 101);
         else if (strcmp(strCode[pos], "add\0") == 0)
-        {
-            if(stackPop(&Stk, &temp1))
-                return 1;
-            if(stackPop(&Stk, &temp2))
-                return 1;
-            stackPush(&Stk, temp1 + temp2);
-        }
+            fprintf(bytecode, "%d ", 11);
         else if (strcmp(strCode[pos], "sub\0") == 0)
-        {
-            if(stackPop(&Stk, &temp1))
-                return 1;
-            if(stackPop(&Stk, &temp2))
-                return 1;
-            stackPush(&Stk, temp2 - temp1);
-        }
+            fprintf(bytecode, "%d ", 12);
         else if (strcmp(strCode[pos], "mult\0") == 0)
-        {
-            if(stackPop(&Stk, &temp1))
-                return 1;
-            if(stackPop(&Stk, &temp2))
-                return 1;
-            stackPush(&Stk, temp2 * temp1);
-        }
+            fprintf(bytecode, "%d ", 13);
         else if (strcmp(strCode[pos], "div\0") == 0)
-        {
-            if(stackPop(&Stk, &temp1))
-                return 1;
-            if(stackPop(&Stk, &temp2))
-                return 1;
-            stackPush(&Stk, temp2 / temp1);
-        }
+            fprintf(bytecode, "%d ", 14);
         else if (strcmp(strCode[pos], "out\0") == 0)
-        {
-            temp1 = 0;
-            while (stackPop(&Stk, &temp1) != -1)
-                printf("\n>> %d\n", temp1);    
-        }
+            fprintf(bytecode, "%d ", 21);
         else if (strcmp(strCode[pos], "halt\0") == 0)
         {
-            stackDtor(&Stk);
-            free(strCode);
-            free(Buff);
-            break;
+            fprintf(bytecode, "%d", 210);
+            printf(">>> Compilation successful\n");
+            return 0;
         }
         else
         {
-            printf("\n\n>>>Command not found.");
+            printf("\n\n>>>Compilation error. Command not found.");
             return 1;
         }
     }
-}
-
-void SpacestoZeroes(char *arrPointer, int arrSize)
-{
-    for (int i = 0; i < arrSize; i++)
-        if(arrPointer[i] == ' ')
-            arrPointer[i] = '\0';
 }
 
 
