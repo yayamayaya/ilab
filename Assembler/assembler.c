@@ -126,6 +126,8 @@ int main()
             fprintf(bytecode, "%d", HALT);
             printf(">>> Compilation successful\n");
             fclose(bytecode);
+            free(strCode);
+            free(Buff);
             return 0;
         }
         else
