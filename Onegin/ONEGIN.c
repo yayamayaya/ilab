@@ -72,6 +72,9 @@ int main()
     printf("\nPrinting original text: \n\n");
     for(int i = 0; i < size; i++)
         printf("%c", Buff[i]);
+
+    free(stroki);
+    free(Buff);
 }
 
 int strCmp(void *point1, void *point2)                              //Сравнение строк
