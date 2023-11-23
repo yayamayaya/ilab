@@ -1,13 +1,11 @@
-push 5
 push 10
-push 32
-push 41
-add
-add
-sub
-push 34
-mult
 push 2
+push 10
+mult
+pop dx
+pop ax
+push dx
+push ax
 div
 out
 halt
