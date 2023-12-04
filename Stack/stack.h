@@ -7,8 +7,9 @@ struct stack
     int capacity;
 };
 typedef struct stack stack;
-void stackCtor(stack *stk, int capacity);
+int stackCtor(stack *stk, int capacity);
 void stackDtor(stack *stk);
 void stackPush(stack *stk, int num);
 int stackPop(stack *stk, int *num);
 void stackPrint(stack *stk);
+int stk_realloc(stack *stk, int num);
