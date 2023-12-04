@@ -3,131 +3,83 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "C:\Users\megas\Clearn\ilab\Onegin\fileSize.h"
-#include "C:\Users\megas\Clearn\ilab\Onegin\StringNumber.h"
+#include <ctype.h>
+#include "..\Onegin\fileReader.h"
 #include "asm.h"
 
+#define DEBUG
+#define CMD_PUSH ">>PUSH compiled\n"
+#define CMD_ADD ">>ADD compiled\n"
+#define CMD_SUB ">>SUB compiled\n"
+#define CMD_MULT ">>MULT compiled\n"
+#define CMD_DIV ">>DIV compiled\n"
+#define CMD_OUT ">>OUT compiled\n"
+#define CMD_HALT ">>HALT compiled, Compilation successful\n"
+#define CMD_POP ">>POP compiled\n"
+#define CMD_IN ">>IN compiled\n"
+#define CMD_rpush ">>PUSH (reg) compiled\n"
+#define CMD_REG ">>register found\n"
+#define CMD_NUMPUSHED ">>Number was pushed\n"
+
+#ifdef DEBUG
+    #define PRINT(arg) printf(arg);
+#else
+    #define PRINT(arg)
+#endif
+
+int registerNum(int charNum, FILE* fileName);
+int codeInFile(int codeElement, FILE* fileName, char CDM_name[]);
 
 int main()
 {
-    FILE * code = fopen("code.txt", "rb");              //Открываем файл, проверка на существонвание файла и его открытие
-    if(code == NULL)
-    {
-        printf("Can't open the file.");
-        return 1;
-    }
+    char **strCode = NULL;
+    int fileSize = 0;
+    int stringNumber = 0;
 
-    int size = 0;                                           //Размер файла в символах
-    int strs = 0;                                           //Количество строк в файле
+    fileRead("code.txt", &strCode, &fileSize, &stringNumber);
 
-    fileSize(code, &size);
+    FILE * byteCode = fopen("bytecode.txt", "wb");
 
-    //printf("\nSize of file is: %d\n", size);
-    char *Buff = (char *)calloc(size + 1, sizeof(char));       //Создаем массив, куда запишем весь файл
-
-    rewind(code);                                        //Возвращаемся в начало файла
-    if(fread(Buff, sizeof(char), size, code) < size)       //Условие на ошибки
-    {
-        printf(">>>text reading error");
-        return 1;
-    }
-    
-    fclose(code);
-
-    stringNumber(Buff, &strs);
-
-    char **strCode = (char **)calloc(strs, sizeof(char *));          //Создаём массив указателей на начала строк, размер массива - количество строк в тексте
-
-    strCode[0] = &Buff[0];
-    for (int i = 1; i < strs; i++)
-    {
-        strCode[i] = strchr(*(strCode + i - 1), '\0') + 1;
-        if (*strCode[i] == '\n')
-            strCode[i] += 1;
-    }
-
-    FILE * bytecode = fopen("bytecode.txt", "w");
-
-    for(int pos = 0; pos < strs; pos++)
+    for(int pos = 0;; pos++)
     {     
+        assert(pos <= stringNumber);
         if (strncmp(strCode[pos], "push ", 5) == 0)
         {
-            int temp = 0;            
+            int temp = 0;
             if(sscanf(strCode[pos] + 5, "%d", &temp) == 0)
             {
-                fprintf(bytecode, "%d ", rpush);
-                sscanf(strCode[pos] + 5, "%c", &temp);
-                switch (temp)
-                {
-                case 97:
-                    fprintf(bytecode, "%d ", 1);
-                    break;
-                case 98:
-                    fprintf(bytecode, "%d ", 2);
-                    break;
-                case 99:
-                    fprintf(bytecode, "%d ", 3);
-                    break;
-                case 100:
-                    fprintf(bytecode, "%d ", 4);
-                    break;            
-                default:
-                    printf("Compilation error: incompatable register name");
-                    return 1;
-                    break;
-                }
-                continue;
+                codeInFile(rpush, byteCode, CMD_rpush);
+                registerNum(*(strCode[pos] + 5), byteCode);              
             }
-            fprintf(bytecode, "%d ", PUSH);
-
-            sscanf(strCode[pos] + 5, "%d", &temp);
-            fprintf(bytecode, "%d ", temp);
+            else
+            {
+                codeInFile(PUSH, byteCode, CMD_PUSH);
+                codeInFile(temp, byteCode, CMD_NUMPUSHED);            
+            }
         }
         else if (strcmp(strCode[pos], "add\0") == 0)
-            fprintf(bytecode, "%d ", ADD);
+            codeInFile(ADD, byteCode, CMD_ADD);
         else if (strcmp(strCode[pos], "sub\0") == 0)
-            fprintf(bytecode, "%d ", SUB);
+            codeInFile(SUB, byteCode, CMD_SUB);
         else if (strcmp(strCode[pos], "mult\0") == 0)
-            fprintf(bytecode, "%d ", MULT);
+            codeInFile(MULT, byteCode, CMD_MULT);
         else if (strcmp(strCode[pos], "div\0") == 0)
-            fprintf(bytecode, "%d ", DIV);
+            codeInFile(DIV, byteCode, CMD_DIV);
         else if (strcmp(strCode[pos], "out\0") == 0)
-            fprintf(bytecode, "%d ", OUT);
+            codeInFile(OUT, byteCode, CMD_OUT);
         else if (strcmp(strCode[pos], "in\0") == 0)
-            fprintf(bytecode, "%d ", IN);
+            codeInFile(IN, byteCode, CMD_IN);
         else if (strncmp(strCode[pos], "pop ", 4) == 0)
         {
 
-            int temp = 0;
-            fprintf(bytecode, "%d ", POP);
-            sscanf(strCode[pos] + 4, "%c", &temp);
-            switch (temp)
-            {
-            case 97:
-                fprintf(bytecode, "%d ", 1);
-                break;
-            case 98:
-                fprintf(bytecode, "%d ", 2);
-                break;
-            case 99:
-                fprintf(bytecode, "%d ", 3);
-                break;
-            case 100:
-                fprintf(bytecode, "%d ", 4);
-                break;            
-            default:
-                printf("Compilation error: incompatable register name");
-                return 1;
-                break;
-            }
+            codeInFile(POP, byteCode, CMD_POP);
+            registerNum(*(strCode[pos] + 4), byteCode);
         }
-        else if (strcmp(strCode[pos], "halt\0") == 0)           //Добавить условие необходимости halt
+        else if (strcmp(strCode[pos], "halt\0") == 0)           
         {
-            fprintf(bytecode, "%d", HALT);
-            printf(">>> Compilation successful\n");
-            fclose(bytecode);
+            codeInFile(HALT, byteCode, CMD_HALT);
+            fclose(byteCode);
             free(strCode);
-            free(Buff);
             return 0;
         }
         else
@@ -136,4 +88,38 @@ int main()
             return 1;
         }
     }
+}
+
+int registerNum(int charNum, FILE* fileName)
+{
+    assert('a' <= charNum && charNum <= 'd');
+    switch (charNum)
+    {
+        case 'a':
+            codeInFile(1, fileName, CMD_REG);
+            break;
+        case 'b':
+            codeInFile(2, fileName, CMD_REG);
+            break;
+        case 'c':
+            codeInFile(3, fileName, CMD_REG);
+            break;
+        case 'd':
+            codeInFile(4, fileName, CMD_REG);
+            break; 
+        default:
+            printf("Compilation error: incompatable register name");
+            return 1;
+            break;
+    }
+}
+
+int codeInFile(int codeElement, FILE* fileName, char CMD_name[])
+{
+    int temp = codeElement;
+    int *tempPointer = &temp;
+
+    fwrite(tempPointer, sizeof(char), 1, fileName);
+
+    PRINT(CMD_name)
 }
