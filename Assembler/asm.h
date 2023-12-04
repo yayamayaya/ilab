@@ -2,7 +2,7 @@
 
 enum ASM
 {
-    PUSH = 0,
+    PUSH = 00,
     ADD = 11,
     SUB,
     MULT,
