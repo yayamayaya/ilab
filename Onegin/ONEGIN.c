@@ -71,7 +71,7 @@ int main()
 
     printf("\nPrinting original text: \n\n");
     for(int i = 0; i < size; i++)
-        printf("%c", Buff[i]);
+        printf("%c", Buff[i]);          //Сделать через puts и strchr
 
     free(stroki);
     free(Buff);

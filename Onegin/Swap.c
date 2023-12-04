@@ -38,36 +38,36 @@
 
 void SwapOpt(void* point1, void* point2, int typeSize)
 {
-    void *temp = (void *)calloc(sizeof(uint64_t), sizeof(uint8_t));
+    uint64_t temp = 0;
     int pos = 0;
 
     //static_assert(sizeof(uint64_t) == 8);
 
     while (typeSize >>= 3)
     {
-        memcpy(temp, (void *)((uint8_t *)point1 + pos), sizeof(uint64_t));
-        memcpy((void *)((uint8_t *)point1 + pos), (void *)((uint8_t *)point2 + pos), sizeof(uint64_t));
-        memcpy((void *)((uint8_t *)point2 + pos), temp, sizeof(uint64_t));
+        memcpy(&temp, ((uint8_t *)point1 + pos), sizeof(uint64_t));
+        memcpy(((uint8_t *)point1 + pos), ((uint8_t *)point2 + pos), sizeof(uint64_t));
+        memcpy(((uint8_t *)point2 + pos), &temp, sizeof(uint64_t));
         pos += 8;
     }
     if (typeSize & 0x04)
     {
-        memcpy(temp, (void*)((uint8_t *)point1 + pos), sizeof(uint32_t));
-        memcpy((void*)((uint8_t *)point1 + pos), (void*)((uint8_t *)point2 + pos), sizeof(uint32_t));
-        memcpy((void*)((uint8_t *)point2 + pos), temp, sizeof(uint32_t));
+        memcpy(&temp, ((uint8_t *)point1 + pos), sizeof(uint32_t));
+        memcpy(((uint8_t *)point1 + pos), ((uint8_t *)point2 + pos), sizeof(uint32_t));
+        memcpy(((uint8_t *)point2 + pos), &temp, sizeof(uint32_t));
         pos += 4;
     }
     if (typeSize & 0x02)
     {
-        memcpy(temp, (void*)((uint8_t *)point1 + pos), sizeof(uint16_t));
-        memcpy((void*)((uint8_t *)point1 + pos), (void*)((uint8_t *)point2 + pos), sizeof(uint16_t));
-        memcpy((void*)((uint8_t *)point2 + pos), temp, sizeof(uint16_t));
+        memcpy(&temp, ((uint8_t *)point1 + pos), sizeof(uint16_t));
+        memcpy(((uint8_t *)point1 + pos), ((uint8_t *)point2 + pos), sizeof(uint16_t));
+        memcpy(((uint8_t *)point2 + pos), &temp, sizeof(uint16_t));
         pos += 2;
     }
     if (typeSize & 0x01)
     {
-        memcpy(temp, (void*)((uint8_t *)point1 + pos), sizeof(uint8_t));
-        memcpy((void*)((uint8_t *)point1 + pos), (void*)((uint8_t *)point2 + pos), sizeof(uint8_t));
-        memcpy((void*)((uint8_t *)point2 + pos), temp, sizeof(uint8_t));        
+        memcpy(&temp, ((uint8_t *)point1 + pos), sizeof(uint8_t));
+        memcpy(((uint8_t *)point1 + pos), ((uint8_t *)point2 + pos), sizeof(uint8_t));
+        memcpy(((uint8_t *)point2 + pos), &temp, sizeof(uint8_t));        
     }
 }

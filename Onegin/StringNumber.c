@@ -3,7 +3,7 @@
 void stringNumber(char* arrPoint, int* Count)
 {
     int i = 0;
-    int count = 0;      // Если последний элемент \n  - не нужно + 1
+    int count = 0;      
 
     while (arrPoint[i] != '\0')
     {
@@ -12,9 +12,8 @@ void stringNumber(char* arrPoint, int* Count)
             arrPoint[i] = '\0';
             count++;
             i += 2;
-            continue;
-        };
-        if (arrPoint[i] == '\n')
+        }
+        else if (arrPoint[i] == '\n')
         {
             arrPoint[i] = '\0';
             count++;
