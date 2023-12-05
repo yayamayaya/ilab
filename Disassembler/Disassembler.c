@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "..\Assembler\asm.h"
 #include "..\Onegin\fileSize.h"
+#include "..\Onegin\fileReader.h"
 
 #ifdef DEBUG
     #define PRINT(arg) printf(arg);
@@ -11,28 +12,13 @@
 #endif
 
 int registerNum(int charNum, FILE* fileName);
+void cmdJmp(FILE * fileName, int cmd, int* ppos, char* arr);
 
 int main()
 {
-    FILE * bytecode = fopen("../Assembler/bytecode.txt", "rb");
-    if(bytecode == NULL)
-    {
-        printf("Can't open the file.");
-        return 1;
-    }      
+    char *Buff = 0;
 
-    int size = 0;                                          
-
-    fileSize(bytecode, &size);
-    char *Buff = (char *)calloc(size + 1, sizeof(char));      
-
-    rewind(bytecode);                               
-    if(fread(Buff, sizeof(char), size, bytecode) < size)      
-    {
-        printf(">>>text reading error");
-        return 1;
-    }
-    fclose(bytecode); 
+    fileRead("../Assembler/bytecode.txt", &Buff, NULL, NULL, NULL, BUFF_ONLY);
 
     FILE * code = fopen("disassembledCode.txt", "w");
 
@@ -70,6 +56,27 @@ int main()
             break;
         case IN:
             fprintf(code, "in\n");
+            break;
+        case JMP:
+            cmdJmp(code, 0, &pos, Buff);
+            break;
+        case JB:
+            cmdJmp(code, '<', &pos, Buff);
+            break;
+        case JBE:
+            cmdJmp(code, 'l', &pos, Buff);
+            break;
+        case JA:
+            cmdJmp(code, '>', &pos, Buff);
+            break;
+        case JAE:
+            cmdJmp(code, 'm', &pos, Buff);
+            break;
+        case JE:
+            cmdJmp(code, '=', &pos, Buff);
+            break;
+        case JNE:
+            cmdJmp(code, '!', &pos, Buff);
             break;
         case OUT:
             fprintf(code, "out\n");
@@ -109,4 +116,35 @@ int registerNum(int charNum, FILE* fileName)
             return 1;
             break;
     }
+}
+
+void cmdJmp(FILE * fileName, int cmd, int* ppos, char* arr)
+{
+    ++*ppos;
+    switch(cmd)
+    {
+        case '<':
+            fprintf(fileName, "jb ");
+        case '>':
+            fprintf(fileName, "ja ");
+            break;
+        case '=':
+            fprintf(fileName, "je ");
+            break;
+        case '!':
+            fprintf(fileName, "jne ");
+            break;
+        case 'm':
+            fprintf(fileName, "jae ");
+            break;
+        case 'l':
+            fprintf(fileName, "jbe ");
+            break;
+        default:
+            fprintf(fileName, "jmp ");
+            break;    
+    }
+
+    fprintf(fileName, "%d", arr[*ppos]);
+    fprintf(fileName, "\n");
 }
