@@ -20,6 +20,8 @@
 #define CMD_rpush ">>PUSH (reg) compiled\n"
 #define CMD_REG ">>register found\n"
 #define CMD_NUMPUSHED ">>Number was pushed\n"
+#define CMD_JMP ">>JMP compiled\n"
+#define CMD_JMP_CON ">>Conditional JMP compiled\n"
 
 #ifdef DEBUG
     #define PRINT(arg) printf(arg);
@@ -29,6 +31,7 @@
 
 int registerNum(int charNum, FILE* fileName);
 int codeInFile(int codeElement, FILE* fileName, char CDM_name[]);
+int codewNum(char *arr, int cmd, FILE *fileName, char CMD_name[]);
 
 int main()
 {
@@ -51,11 +54,7 @@ int main()
                 codeInFile(rpush, byteCode, CMD_rpush);
                 registerNum(*(strCode[pos] + 5), byteCode);              
             }
-            else
-            {
-                codeInFile(PUSH, byteCode, CMD_PUSH);
-                codeInFile(temp, byteCode, CMD_NUMPUSHED);            
-            }
+            codewNum(strCode[pos] + 5, PUSH, byteCode, CMD_PUSH);
         }
         else if (strcmp(strCode[pos], "add\0") == 0)
             codeInFile(ADD, byteCode, CMD_ADD);
@@ -69,6 +68,20 @@ int main()
             codeInFile(OUT, byteCode, CMD_OUT);
         else if (strcmp(strCode[pos], "in\0") == 0)
             codeInFile(IN, byteCode, CMD_IN);
+        else if (strncmp(strCode[pos], "jmp ", 4) == 0)
+            codewNum(strCode[pos] + 4, JMP, byteCode, CMD_JMP);
+        else if (strncmp(strCode[pos], "jb ", 3) == 0)
+            codewNum(strCode[pos] + 3, JB, byteCode, CMD_JMP_CON);
+        else if (strncmp(strCode[pos], "ja ", 3) == 0)
+            codewNum(strCode[pos] + 3, JA, byteCode, CMD_JMP_CON);
+        else if (strncmp(strCode[pos], "jbe ", 4) == 0)
+            codewNum(strCode[pos] + 4, JBE, byteCode, CMD_JMP_CON);
+        else if (strncmp(strCode[pos], "jae ", 4) == 0)
+            codewNum(strCode[pos] + 4, JAE, byteCode, CMD_JMP_CON);
+        else if (strncmp(strCode[pos], "je ", 3) == 0)
+            codewNum(strCode[pos] + 3, JE, byteCode, CMD_JMP_CON);
+        else if (strncmp(strCode[pos], "jne ", 4) == 0)
+            codewNum(strCode[pos] + 4, JNE, byteCode, CMD_JMP_CON);
         else if (strncmp(strCode[pos], "pop ", 4) == 0)
         {
 
@@ -117,9 +130,18 @@ int registerNum(int charNum, FILE* fileName)
 int codeInFile(int codeElement, FILE* fileName, char CMD_name[])
 {
     int temp = codeElement;
-    int *tempPointer = &temp;
 
-    fwrite(tempPointer, sizeof(char), 1, fileName);
+    fwrite(&temp, sizeof(char), 1, fileName);
 
     PRINT(CMD_name)
+}
+
+int codewNum(char *arr, int cmd, FILE *fileName, char CMD_name[])
+{
+    int temp = 0;
+    if(sscanf(arr, "%d", &temp) == 0)
+        printf(">>>This is command without number");
+
+    codeInFile(cmd, fileName, CMD_name);
+    codeInFile(temp, fileName, CMD_NUMPUSHED);
 }
