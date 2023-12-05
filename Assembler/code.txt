@@ -1,9 +1,6 @@
 push 10
-push 15
+push 1
+push 1
 add
-pop dx
-push dx
-push dx
-add
-out
+ja 4
 halt
