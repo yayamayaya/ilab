@@ -4,51 +4,20 @@
 #include <memory.h>
 #include <assert.h>
 
-
-/*void Swap(void* point1, void* point2, int typeSize)
-{
-    if (typeSize == sizeof(uint64_t))
-    {
-        uint64_t temp = *(uint64_t *)point1;
-        *(uint64_t *)point1 = *(uint64_t *)point2;
-        *(uint64_t *)point2 = temp;
-    }
-
-    if (typeSize == sizeof(uint32_t))
-    {
-        uint32_t temp = *(uint32_t *)point1;
-        *(uint32_t *)point1 = *(uint32_t *)point2;
-        *(uint32_t *)point2 = temp;
-    }
-
-    if (typeSize == sizeof(uint16_t))
-    {
-        uint16_t temp = *(uint16_t *)point1;
-        *(uint16_t *)point1 = *(uint16_t *)point2;
-        *(uint16_t *)point2 = temp;
-    }
-
-    if (typeSize == sizeof(uint8_t))
-    {
-        uint8_t temp = *(uint8_t *)point1;
-        *(uint8_t *)point1 = *(uint8_t *)point2;
-        *(uint8_t *)point2 = temp;
-    }
-}*/
-
 void SwapOpt(void* point1, void* point2, int typeSize)
 {
     uint64_t temp = 0;
     int pos = 0;
 
-    //static_assert(sizeof(uint64_t) == 8);
+    //assert(sizeof(uint64_t) == 8);
 
-    while (typeSize >>= 3)
+    while(typeSize >> 3)
     {
         memcpy(&temp, ((uint8_t *)point1 + pos), sizeof(uint64_t));
         memcpy(((uint8_t *)point1 + pos), ((uint8_t *)point2 + pos), sizeof(uint64_t));
         memcpy(((uint8_t *)point2 + pos), &temp, sizeof(uint64_t));
         pos += 8;
+        typeSize -= 8;    
     }
     if (typeSize & 0x04)
     {
