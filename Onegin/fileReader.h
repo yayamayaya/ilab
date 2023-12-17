@@ -7,4 +7,4 @@ enum options
     BOTH = 3
 };
 
-int fileRead(char fileName[], char** text ,char ***strPointer, int *sizeOfFile, int *numberOfStrings, int option);
+int fileRead(char *fileName, char** text ,char ***strPointer, int *sizeOfFile, int *numberOfStrings, int option);

@@ -16,7 +16,7 @@
     #define PRINT(arg) printf("");
 #endif
 
-int fileRead(char fileName[], char** text ,char ***strPointer, int *sizeOfFile, int *numberOfStrings, int option)
+int fileRead(char *fileName, char** text ,char ***strPointer, int *sizeOfFile, int *numberOfStrings, int option)
 {
     assert(fileName != NULL);
     assert(text != NULL || strPointer != NULL);
