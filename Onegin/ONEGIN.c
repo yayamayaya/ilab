@@ -20,9 +20,9 @@ int reverseStrCmp(void *s1, void *s2);
 void StrPrint(char **arrPoint, int strNumber);
 void stringPrint(string *strings, int strNumber);
 
-int main() 
+int main(int argc, char **argv) 
 {
-    FILE * strings = fopen("stroki.txt", "rb");              //Открываем файл, проверка на существонвание файла и его открытие
+    FILE * strings = fopen(argv[1], "rb");              //Открываем файл, проверка на существонвание файла и его открытие
     if(strings == NULL)
     {
         printf("Can't open the file.");
@@ -34,44 +34,50 @@ int main()
 
     fileSize(strings, &size);
 
-    printf("\nSize of file is: %d\n", size);
+    printf("\n>>Size of file is: %d\n", size);
     char *Buff = (char*)calloc(size + 1, sizeof(char));       //Создаем массив, куда запишем весь файл
 
     rewind(strings);                                        //Возвращаемся в начало файла
     if(fread(Buff, sizeof(char), size, strings) < size)       //Условие на ошибки
     {
-        printf(">>>text reading error");
+        printf(">>>Text reading error");
         return 1;
     }
     
     fclose(strings);
 
     stringNumber(Buff, &strs);
-    printf("Number of strings is: %d\n\n", strs);
+    printf("\n>>Number of strings is: %d\n", strs);
 
     string *stroki = (string *)calloc(strs, sizeof(string));          //Создаём массив указателей на начала строк, размер массива - количество строк в тексте
 
     stroki[0].strPointer = &Buff[0];
     for (int i = 1; i < strs; i++)
     {
-        stroki[i].strPointer = strchr((stroki + i - 1)-> strPointer, '\0') + 1; 
-        stroki[i - 1].strLeng = stroki[i].strPointer - stroki[i - 1].strPointer;
-        if (*stroki[i].strPointer == '\n')
+        stroki[i].strPointer = strchr(stroki[i - 1].strPointer, '\0') + 1; 
+        stroki[i - 1].strLeng = stroki[i].strPointer - stroki[i - 1].strPointer;    //Длина строки без учета \n, если он есть
+        if(*stroki[i].strPointer == '\n')
             stroki[i].strPointer += 1;
     }
+    stroki[strs - 1].strLeng = &Buff[size + 1] - stroki[strs - 1].strPointer;
+
     stringPrint(stroki, strs);
 
     printf("\nSorting in alphabet order:\n\n");
     Bsort(stroki, strs, sizeof(string), strCmp);
     stringPrint(stroki, strs);
 
-    printf("\nSorting in alphabet oreder from the end:\n\n");
+    printf("\nSorting in alphabet order from the end:\n\n");
     Bsort(stroki, strs, sizeof(string), reverseStrCmp);
     stringPrint(stroki, strs);
-
+    
     printf("\nPrinting original text: \n\n");
     for(int i = 0; i < size; i++)
-        printf("%c", Buff[i]);          //Сделать через puts и strchr
+    {
+        if(Buff[i - 1] == '\0' && Buff[i] != '\n')
+            printf("\n");        
+        printf("%c", Buff[i]);
+    } 
 
     free(stroki);
     free(Buff);
@@ -94,21 +100,21 @@ int reverseStrCmp(void *point1, void *point2)                       //Сравн
     string *p1 = (string *)point1;
     string *p2 = (string *)point2;
 
-    int pos1 = p1-> strLeng - 1;
-    int pos2 = p2-> strLeng - 1;
-    
-    while(isalpha(*((p1-> strPointer) + pos1)) == 0 && *((p1-> strPointer) + pos1) != '\n')          //Игнорируем знаки препинания
-        --pos1;
-    while(isalpha(*((p2-> strPointer) + pos2)) == 0 && *((p2-> strPointer) + pos2) != '\n')       
-        --pos2; 
+    int pos1 = p1-> strLeng - 2;
+    int pos2 = p2-> strLeng - 2;
 
+    while(isalpha(*((p1-> strPointer) + pos1)) == 0 && *((p1-> strPointer) + pos1) != '\0')          //Игнорируем знаки препинания
+        --pos1;
+    while(isalpha(*((p2-> strPointer) + pos2)) == 0 && *((p1-> strPointer) + pos1) != '\0')       
+        --pos2;
+    
     while (*((p1-> strPointer) + pos1) != '\0' && *((p2-> strPointer) + pos2) != '\0' && *((p1-> strPointer) + pos1) == *((p2-> strPointer) + pos2))
     {
         pos1--;
         pos2--;
     }
     
-    return (*((p1-> strPointer) + pos1) - *((p2-> strPointer) + pos2));
+    return *((p1-> strPointer) + pos1) - *((p2-> strPointer) + pos2);
 }
 
 void stringPrint(string* strings, int strNumber)
