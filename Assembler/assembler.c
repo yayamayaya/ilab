@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
-#include "..\Onegin\fileReader.h"
+#include "../Onegin/fileReader.h"
 #include "asm.h"
 
 #define DEBUG
@@ -33,19 +33,19 @@ int registerNum(int charNum, FILE* fileName);
 int codeInFile(int codeElement, FILE* fileName, char CDM_name[]);
 int codewNum(char *arr, int cmd, FILE *fileName, char CMD_name[]);
 
-int main()
+int main(int argc, char **argv)
 {
     char **strCode = NULL;
     int fileSize = 0;
     int stringNumber = 0;
 
-    fileRead("code.txt", &strCode, &fileSize, &stringNumber);
+    fileRead(argv[1], NULL, &strCode, &fileSize, &stringNumber, STRS_ONLY);
 
     FILE * byteCode = fopen("bytecode.txt", "wb");
 
-    for(int pos = 0;; pos++)
+    for(int pos = 0; pos < stringNumber; pos++)
     {     
-        assert(pos <= stringNumber);
+        assert(pos < stringNumber);
         if (strncmp(strCode[pos], "push ", 5) == 0)
         {
             int temp = 0;
@@ -54,7 +54,8 @@ int main()
                 codeInFile(rpush, byteCode, CMD_rpush);
                 registerNum(*(strCode[pos] + 5), byteCode);              
             }
-            codewNum(strCode[pos] + 5, PUSH, byteCode, CMD_PUSH);
+            else
+                codewNum(strCode[pos] + 5, PUSH, byteCode, CMD_PUSH);
         }
         else if (strcmp(strCode[pos], "add\0") == 0)
             codeInFile(ADD, byteCode, CMD_ADD);
@@ -84,23 +85,20 @@ int main()
             codewNum(strCode[pos] + 4, JNE, byteCode, CMD_JMP_CON);
         else if (strncmp(strCode[pos], "pop ", 4) == 0)
         {
-
             codeInFile(POP, byteCode, CMD_POP);
             registerNum(*(strCode[pos] + 4), byteCode);
         }
         else if (strcmp(strCode[pos], "halt\0") == 0)           
-        {
             codeInFile(HALT, byteCode, CMD_HALT);
-            fclose(byteCode);
-            free(strCode);
-            return 0;
-        }
         else
         {
-            printf("\n\n>>>Compilation error.");
-            return 1;
+            
         }
     }
+
+    fclose(byteCode);
+    free(strCode);
+    return 0;
 }
 
 int registerNum(int charNum, FILE* fileName)
@@ -139,9 +137,15 @@ int codeInFile(int codeElement, FILE* fileName, char CMD_name[])
 int codewNum(char *arr, int cmd, FILE *fileName, char CMD_name[])
 {
     int temp = 0;
+    int i = 0;
     if(sscanf(arr, "%d", &temp) == 0)
         printf(">>>This is command without number");
 
     codeInFile(cmd, fileName, CMD_name);
     codeInFile(temp, fileName, CMD_NUMPUSHED);
 }
+
+
+/*TO do:
+Сделать сначала запись в 1 массив, затем одним fwrite'ом записать в файл весь массив, сделать сдвоенную компиляцию, сделать метки
+*/

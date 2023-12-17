@@ -2,5 +2,6 @@ push 10
 push 1
 push 1
 add
-ja 4
+jne 4
+out
 halt

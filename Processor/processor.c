@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\Stack\stack.h"
-#include "..\Assembler\asm.h"
-#include  "..\Onegin\fileReader.h"
+#include "../Stack/stack.h"
+#include "../Assembler/asm.h"
+#include  "../Onegin/fileReader.h"
 
 struct Processor 
 {
@@ -14,19 +14,20 @@ int arithmetics(stack *stackName, char action);
 int condJMP(stack *stackName, char *arr, int *ip, char condition);
 int jmp(char* arr, int *ip);
 
-int main()
+int main(int argc, char** argv) // argc argv
 {
     char* Buff = 0;
+    int BuffSize = 0;
 
-    fileRead("../Assembler/bytecode.txt", &Buff, NULL, NULL, NULL, BUFF_ONLY);
+    fileRead(argv[1], &Buff, NULL, &BuffSize, NULL, BUFF_ONLY);
 
     struct Processor processor = {0};
     stackCtor(&processor.Stack, 10);
 
 
-    for (int num = 0, ip = 0, temp = 0 ;;)
+    for (int num = 0, ip = 0, temp = 0 ; ip < BuffSize;)
     {
-        switch (Buff[ip])
+        switch (Buff[ip++])
         {
         case PUSH:
             ++ip;
@@ -98,8 +99,7 @@ int main()
             return 0;
             break;
         default:
-            printf("Error in computing");
-            return 1;
+            continue;
             break;
         }
     }
@@ -146,13 +146,13 @@ int condJMP(stack *stackName, char *arr, int *ip, char condition)
     int temp1 = 0;
     int temp2 = 0;
 
-    if(stackPop(stackName, &temp1))
-        return 1;
     if(stackPop(stackName, &temp2))
         return 1;
+    if(stackPop(stackName, &temp1))
+        return 1;
 
-    stackPush(stackName, temp2);
     stackPush(stackName, temp1);
+    stackPush(stackName, temp2);
 
     switch(condition)
     {
@@ -197,3 +197,5 @@ int condJMP(stack *stackName, char *arr, int *ip, char condition)
             break;    
     }
 }
+
+//Сделать call, ret, сделать оперативную память, сделать битовые маски
