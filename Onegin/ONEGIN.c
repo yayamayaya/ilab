@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     printf("\nPrinting original text: \n\n");
     for(int i = 0; i < size; i++)
     {
-        if(Buff[i - 1] == '\0' && Buff[i] != '\n')
+        if(i != 0 && Buff[i] != '\n' && Buff[i - 1] == '\0')
             printf("\n");        
         printf("%c", Buff[i]);
     } 
