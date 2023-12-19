@@ -3,151 +3,275 @@
 #include <assert.h>
 #include <stdlib.h>
 
-//#define DEBUG
+#define DEBUG
+#define SECURE
 
 #ifdef DEBUG
-    #define PRINT(arg) printf(arg);
+    #define VER(arg) Verificator(logFile, *pstk, arg);
+    FILE *logFile = NULL;
 #else
-    #define PRINT(arg)
+    #define VER(arg)
 #endif
 
-#define STK_CTED  "\n>> Stack has been constructed with the capacity of: %d", stk-> capacity 
-#define STK_DTED "\n>> Stack has been destructed" 
-#define CAPACITY_ZERO "\n>>> Capacity can't be zero"
-#define MEM_ALC_ERR "\n\n>>>Memory allocation error" 
-#define MEM_RLC_ERR "\n\n>>>Memory reallocation error" 
-#define STK_PUSH "\n>> %d was pushed on position %d", *(stk-> data + stk-> size - 1), stk-> size
-#define STK_POP "\n>> %d was popped from the stack", temp
-#define STK_EMPTY "\n>> Stack is empty"
-#define CAPACITY_UP "\n>> Capacity has been doubled"
-#define CAPACITY_DOWN "\n>> Capacity has been halfed"   //Сделать логфайл, функцию трансляции ошибки через enu
+#ifdef SECURE
+    #define STKKILL(ptr) stackKiller(ptr);
+#else
+    #define STKKILL(ptr)
+#endif
 
-enum stk_realloc
+void Verificator(FILE* fileName, const stack stk, const int errNum);
+int poisonCheck(const stack *pstk);
+int canaryCheck(const stack *pstk);
+void stackKiller(stack *pstk);
+
+const dataType poison = 0xDEAD;
+const long long int canary = 0xDEDDEAD;
+
+int stackCtor(stack *pstk, const int capacity)
 {
-    DOWN = 0, 
-    UP = 1
-};
-
-//const long long int canary = 0xADEDDEAD
-
-int stackCtor(stack *stk, int capacity)
-{
-    assert(stk != NULL);
-
-    stk-> data = (sDT *)calloc(capacity, sizeof(sDT));
-    if(stk-> data == NULL)
+    assert(pstk != NULL);
+    if(capacity == 0)               //Проверки
     {
-        PRINT(MEM_ALC_ERR);
-        return 1;
+        VER(CAPACITY_ZERO)
+        return CAPACITY_ZERO;
     }
 
-    stk-> size = 0;
-    stk-> capacity = capacity;
-    if(stk-> capacity == 0)
-    {
-        PRINT(CAPACITY_ZERO)
-        return 1;
-    }
-    
+    #ifdef DEBUG            //Открываем логфайл
+        logFile = fopen("logFile.txt", "w");
+        if(logFile == NULL)
+            printf("[error]>>Can't open the log.\n");
+    #endif
 
-    PRINT(STK_CTED)
+    pstk->firstCanaryPtr = (long long int *)calloc(capacity * sizeof(dataType) + 2 * sizeof(canary), 1);       
+    if(pstk->firstCanaryPtr == NULL)        //Аллоцируем память под канареек и данные, присваиваем адреса памяти канарейкам и данным
+    {
+        VER(MEM_ALC_ERR)
+        return MEM_ALC_ERR;
+    }
+    pstk->data = (dataType *)(pstk->firstCanaryPtr + 1);
+    pstk->secondCanaryPtr = (long long int *)(pstk->data + capacity);
+
+    pstk->size = 0;
+    pstk->capacity = capacity;
+
+    for(int i = 0; i < pstk->capacity; i++) //Инициализируем ядом
+        pstk->data[i] = poison;
+
+    *(pstk->firstCanaryPtr) = canary;   //Присваиваем канарейкам значения
+    *(pstk->secondCanaryPtr) = canary;
+
+    if(poisonCheck(pstk) != 0)      //Poison check
+    {
+        STKKILL(pstk)
+        return PSN_ERR;
+    }
+
+    VER(STK_CTED)
+    return STK_CTED;
+}
+
+void stackDtor(stack *pstk)
+{
+    assert(pstk != NULL);
+
+    pstk->capacity = 0;
+    pstk->size = 0;
+
+    free(pstk->firstCanaryPtr);
+
+    pstk->firstCanaryPtr = NULL;        //Высвобождаем память, занулляем указатели
+    pstk->data = NULL;
+    pstk->secondCanaryPtr = NULL;
+
+    VER(STK_DTED)
+}
+
+int stackPush(stack *pstk, const dataType num)
+{
+    assert(pstk != NULL);
+
+    if (pstk->size == pstk->capacity)           //Проверка на переполнение массива
+        if(stk_realloc(pstk, UP) != 0)
+            return MEM_RLC_ERR;
     
+    pstk->data[pstk->size] = num;
+    pstk->size++;
+
+    if(poisonCheck(pstk) != 0)      //poison check and canary check
+    {
+        STKKILL(pstk)
+        return PSN_ERR;
+    }
+    if(canaryCheck(pstk) != 0)
+    {
+        STKKILL(pstk)
+        return CANARY_ERR;
+    }
+
+    VER(STK_PUSH)
+
     return 0;
 }
 
-void stackDtor(stack *stk)
+int stackPop(stack *pstk, dataType *num)
 {
-    assert(stk != NULL);
-    stk-> capacity = 0;
-    stk-> size = 0;
-
-    free(stk-> data);
-    stk-> data = NULL;
-
-    PRINT(STK_DTED);
-}
-
-int stackPush(stack *stk, sDT num)
-{
-    assert(stk != NULL);
-    if(stk-> capacity == 0)
+    assert(pstk != NULL);
+    if (pstk->size == 0)
     {
-        PRINT(CAPACITY_ZERO)
-        return 1;
-    }
-
-    if (stk-> size == stk-> capacity)
-        if(stk_realloc(stk, UP) != 0)
-            return 1;
-    
-    stk-> data[stk-> size] = num;
-    stk-> size++;
-
-    PRINT(STK_PUSH)
-    return 0;
-}
-
-int stackPop(stack *stk, sDT *num)
-{
-    assert(stk != NULL);
-    if(stk-> capacity == 0)
-    {
-        PRINT(CAPACITY_ZERO)
-        return 1;
-    }
-    if (stk-> size == 0)
-    {
-        PRINT(STK_EMPTY)
+        VER(STK_EMPTY)
         return -1;
     }
     
-    --stk-> size;   
-    sDT temp = stk-> data[stk-> size];
-    stk-> data[stk-> size] = 0;
- 
-    PRINT(STK_POP)
+    --pstk->size;   
+    dataType temp = pstk->data[pstk->size];      //Берем значение, заполняем ячейку ядом
+    pstk->data[pstk->size] = poison;
 
-    if(num != NULL)
+    if(num != NULL)     //Это пустой поп
         *num = temp;
 
+    if(poisonCheck(pstk) != 0)
+    {
+        STKKILL(pstk)
+        return PSN_ERR;
+    }
+    if(canaryCheck(pstk) != 0)
+    {
+        STKKILL(pstk)
+        return CANARY_ERR;
+    }
+
+    VER(STK_POP)
     return 0;
 }
 
-void stackPrint(stack *stk)
+void stackPrint(const stack *pstk)
 {
-    assert(stk != NULL);
+    assert(pstk != NULL);
     printf("\n>> Stack info:\n");
-    printf("\n>> Size: %d", stk-> size);
-    printf("\n>> Capacity: %d", stk-> capacity);
-    printf("\n>> Current data in stack:");    
-    for (int i = 0; i < stk-> size; i++)
-        printf("%d) %d\n", i + 1, *(stk-> data + i));
+    printf("\n>> Size: %d", pstk->size);
+    printf("\n>> Capacity: %d", pstk->capacity);
+    printf("\n>> Current data in stack:\n");    
+    for (int i = 0; i < pstk->size; i++)
+        printf("%d) %d\n", i + 1, pstk->data[i]);
+    printf(">> Poison is: %X", poison);
+    printf("\n>> Canaries are %llX and %llX\n", *(pstk->firstCanaryPtr), *(pstk->secondCanaryPtr));
 }
 
-int stk_realloc(stack *stk, int num)
+int stk_realloc(stack *pstk, const int num)
 {
-    assert(stk != NULL);
+    assert(pstk != NULL);
 
     if(num == UP)
     {
-        stk ->capacity *= 2;
-        PRINT(CAPACITY_UP)
+        pstk->capacity *= 2;
+        VER(CAPACITY_UP)
     }
     else if(num == DOWN)
     {
-        stk ->capacity /= 2;
-        PRINT(CAPACITY_DOWN)           
+        pstk->capacity /= 2;
+        VER(CAPACITY_DOWN)           
     }
 
-    int *temp = realloc(stk-> data, stk-> capacity * sizeof(sDT));
+    long long int canaryHolder = *(pstk->secondCanaryPtr);      //Запоминаем значение старой канарейки на случай её изменения
+
+    long long int *temp = (long long int *)realloc(pstk->firstCanaryPtr, pstk->capacity * sizeof(dataType) + 2 * sizeof(canary));
     if(temp == NULL)        
     {
-        PRINT(MEM_RLC_ERR)
-        return 1;
+        VER(MEM_RLC_ERR)
+        return MEM_RLC_ERR;
     }
-    stk-> data = temp;
+    pstk->firstCanaryPtr = temp;
+    pstk->data = (dataType *)(pstk->firstCanaryPtr + 1);             //Присваиваем указатели данным и канарейкам
+    pstk->secondCanaryPtr = (long long int *)(pstk->data + pstk->capacity);
+
+    *(pstk->secondCanaryPtr) = canaryHolder;      //Присваиваем значение новой конечной канарейке, значение старой сотрётся ядом
+
+    if(num == UP)
+        for (int i = pstk->capacity - 1; i >= pstk->capacity / 2 ; i--)
+            pstk->data[i] = poison;
+
+    if(poisonCheck(pstk) != 0 || canaryCheck(pstk) != 0)
+        STKKILL(pstk)
 
     return 0;
 }
 
-//Функция верификатора, инициализация ядом.
+void Verificator(FILE* fileName, const stack stk, const int errNum)
+{
+    switch (errNum)
+    {
+    case STK_CTED:
+        fprintf(fileName, ">> Stack has been constructed with the capacity of: %d       STK_CTED       < %d >\n", stk.capacity, errNum);
+        break;
+    case STK_DTED:
+        fprintf(fileName, ">> Stack has been destructed     STK_DTED     < %d >\n", errNum);
+        fclose(fileName);
+        break;
+    case CAPACITY_ZERO:
+        fprintf(fileName, ">> Capacity can't be zero        CAPACITY_ZERO        < %d >         [error]\n", errNum);
+        break;
+    case MEM_ALC_ERR:
+        fprintf(fileName, ">> Memory allocation error       MEM_ALC_ERR       < %d >          [error]\n", errNum);
+        break;
+    case MEM_RLC_ERR:
+        fprintf(fileName, ">> Memory reallocation error     MEM_RLC_ERR     < %d >            [error]\n", errNum);
+        break;
+    case STK_PUSH:
+        fprintf(fileName, ">> %d was pushed on position %d      STK_PUSH      < %d >\n", stk.data[stk.size - 1], stk.size, errNum);
+        break;
+    case STK_POP:
+        fprintf(fileName, ">> Number was popped from the stack      STK_POP      < %d >\n", errNum);
+        break;
+    case STK_EMPTY:
+        fprintf(fileName, ">> Stack is empty        STK_EMPTY        < %d >\n", errNum);
+        break;
+    case CAPACITY_UP:
+        fprintf(fileName, ">> Capacity has been doubled     CAPACITY_UP     < %d >\n", errNum);
+        break;
+    case CAPACITY_DOWN:
+        fprintf(fileName, ">> Capacity has been halfed      CAPACITY_DOWN      < %d >\n", errNum);
+        break;
+    case PSN_ERR:
+        fprintf(fileName, ">> Number is not poison      PSN_ERR      < %d >          [danger]\n", errNum);
+        break;
+    case CANARY_ERR:
+        fprintf(fileName, ">> Canary is damaged         CANARY_ERR      < %d >           [danger]\n", errNum);
+        break;
+    case STK_KILL:
+        fprintf(fileName, ">> Stack security was broken, stack to be destructed      STK_KILL        < %d >         [danger]\n", errNum);
+        break;
+    default:
+        break;
+    }
+}
+
+int poisonCheck(const stack *pstk)
+{
+    if(pstk->size != pstk->capacity && pstk->data[pstk->size] != poison)
+    {
+        VER(PSN_ERR)
+        return PSN_ERR;
+    }
+    return 0;
+}
+
+int canaryCheck(const stack *pstk)
+{
+    if(*(pstk->firstCanaryPtr) != canary || *(pstk->secondCanaryPtr) != canary)
+    {
+        VER(CANARY_ERR)
+        return CANARY_ERR;
+    }
+        
+    return 0;
+}
+
+void stackKiller(stack *pstk)
+{
+    VER(STK_KILL)
+    stackDtor(pstk);
+    printf("\n>> Stack security was broken, stack has been destructed\n");
+    exit(1);
+}
+
+//TO DO: переписать фунцию проверки яда*, подумать над канарейкой в реаллоке
