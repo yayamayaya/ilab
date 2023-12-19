@@ -35,9 +35,9 @@ enum stk_realloc
     UP = 1
 };
 
-int stackCtor(stack *stk, const int capacity);
-void stackDtor(stack *stk);
-int stackPush(stack *stk, const dataType num);
-int stackPop(stack *stk, dataType *num);
+int stackCtor(stack *pstk, const int capacity);
+void stackDtor(stack *pstk);
+int stackPush(stack *pstk, const dataType num);
+int stackPop(stack *pstk, dataType *num);
 void stackPrint(const stack *pstk);
 int stk_realloc(stack *stk, const int num);

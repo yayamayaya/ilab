@@ -1,8 +1,7 @@
->> Stack has been constructed with the capacity of: 3       STK_CTED       < 0 >
->> 10 was pushed on position 1      STK_PUSH      < 4 >
->> 10 was pushed on position 2      STK_PUSH      < 4 >
->> 10 was pushed on position 3      STK_PUSH      < 4 >
->> Capacity has been doubled     CAPACITY_UP     < 7 >
->> 5 was pushed on position 4      STK_PUSH      < 4 >
->> Number was popped from the stack      STK_POP      < 5 >
+>> Stack has been constructed with the capacity of: 10       STK_CTED       < 0 >
+>> 1 was pushed on position 1      STK_PUSH      < 4 >
+>> 2 was pushed on position 2      STK_PUSH      < 4 >
+>> 3 was pushed on position 3      STK_PUSH      < 4 >
+>> Number is not poison      PSN_ERR      < 10 >          [danger]
+>> Stack security was broken, stack to be destructed      STK_KILL        < -1 >         [danger]
 >> Stack has been destructed     STK_DTED     < 9 >
