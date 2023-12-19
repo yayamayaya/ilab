@@ -30,7 +30,7 @@ const long long int canary = 0xDEDDEAD;
 int stackCtor(stack *pstk, const int capacity)
 {
     assert(pstk != NULL);
-    if(capacity == 0)               //Проверки
+    if (capacity == 0)               //Проверки
     {
         VER(CAPACITY_ZERO)
         return CAPACITY_ZERO;
@@ -38,12 +38,12 @@ int stackCtor(stack *pstk, const int capacity)
 
     #ifdef DEBUG            //Открываем логфайл
         logFile = fopen("logFile.txt", "w");
-        if(logFile == NULL)
+        if (logFile == NULL)
             printf("[error]>>Can't open the log.\n");
     #endif
 
     pstk->firstCanaryPtr = (long long int *)calloc(capacity * sizeof(dataType) + 2 * sizeof(canary), 1);       
-    if(pstk->firstCanaryPtr == NULL)        //Аллоцируем память под канареек и данные, присваиваем адреса памяти канарейкам и данным
+    if (pstk->firstCanaryPtr == NULL)        //Аллоцируем память под канареек и данные, присваиваем адреса памяти канарейкам и данным
     {
         VER(MEM_ALC_ERR)
         return MEM_ALC_ERR;
@@ -54,13 +54,13 @@ int stackCtor(stack *pstk, const int capacity)
     pstk->size = 0;
     pstk->capacity = capacity;
 
-    for(int i = 0; i < pstk->capacity; i++) //Инициализируем ядом
+    for (int i = 0; i < pstk->capacity; i++) //Инициализируем ядом
         pstk->data[i] = poison;
 
     *(pstk->firstCanaryPtr) = canary;   //Присваиваем канарейкам значения
     *(pstk->secondCanaryPtr) = canary;
 
-    if(poisonCheck(pstk) != 0)      //Poison check
+    if (poisonCheck(pstk) != 0)      //Poison check
     {
         STKKILL(pstk)
         return PSN_ERR;
@@ -97,12 +97,12 @@ int stackPush(stack *pstk, const dataType num)
     pstk->data[pstk->size] = num;
     pstk->size++;
 
-    if(poisonCheck(pstk) != 0)      //poison check and canary check
+    if (poisonCheck(pstk) != 0)      //poison check and canary check
     {
         STKKILL(pstk)
         return PSN_ERR;
     }
-    if(canaryCheck(pstk) != 0)
+    if (canaryCheck(pstk) != 0)
     {
         STKKILL(pstk)
         return CANARY_ERR;
@@ -126,15 +126,15 @@ int stackPop(stack *pstk, dataType *num)
     dataType temp = pstk->data[pstk->size];      //Берем значение, заполняем ячейку ядом
     pstk->data[pstk->size] = poison;
 
-    if(num != NULL)     //Это пустой поп
+    if (num != NULL)     //Это пустой поп
         *num = temp;
 
-    if(poisonCheck(pstk) != 0)
+    if (poisonCheck(pstk) != 0)
     {
         STKKILL(pstk)
         return PSN_ERR;
     }
-    if(canaryCheck(pstk) != 0)
+    if (canaryCheck(pstk) != 0)
     {
         STKKILL(pstk)
         return CANARY_ERR;
@@ -161,7 +161,7 @@ int stk_realloc(stack *pstk, const int num)
 {
     assert(pstk != NULL);
 
-    if(num == UP)
+    if (num == UP)
     {
         pstk->capacity *= 2;
         VER(CAPACITY_UP)
@@ -175,7 +175,7 @@ int stk_realloc(stack *pstk, const int num)
     long long int canaryHolder = *(pstk->secondCanaryPtr);      //Запоминаем значение старой канарейки на случай её изменения
 
     long long int *temp = (long long int *)realloc(pstk->firstCanaryPtr, pstk->capacity * sizeof(dataType) + 2 * sizeof(canary));
-    if(temp == NULL)        
+    if (temp == NULL)        
     {
         VER(MEM_RLC_ERR)
         return MEM_RLC_ERR;
@@ -186,11 +186,11 @@ int stk_realloc(stack *pstk, const int num)
 
     *(pstk->secondCanaryPtr) = canaryHolder;      //Присваиваем значение новой конечной канарейке, значение старой сотрётся ядом
 
-    if(num == UP)
+    if (num == UP)
         for (int i = pstk->capacity - 1; i >= pstk->capacity / 2 ; i--)
             pstk->data[i] = poison;
 
-    if(poisonCheck(pstk) != 0 || canaryCheck(pstk) != 0)
+    if (poisonCheck(pstk) != 0 || canaryCheck(pstk) != 0)
         STKKILL(pstk)
 
     return 0;
@@ -247,17 +247,18 @@ void Verificator(FILE* fileName, const stack stk, const int errNum)
 
 int poisonCheck(const stack *pstk)
 {
-    if(pstk->size != pstk->capacity && pstk->data[pstk->size] != poison)
-    {
-        VER(PSN_ERR)
-        return PSN_ERR;
-    }
+    for (int pos = pstk->size; pos < pstk->capacity; pos++)
+        if (pstk->data[pos] != poison)
+        {
+            VER(PSN_ERR)
+            return PSN_ERR;
+        }    
     return 0;
 }
 
 int canaryCheck(const stack *pstk)
 {
-    if(*(pstk->firstCanaryPtr) != canary || *(pstk->secondCanaryPtr) != canary)
+    if (*(pstk->firstCanaryPtr) != canary || *(pstk->secondCanaryPtr) != canary)
     {
         VER(CANARY_ERR)
         return CANARY_ERR;
